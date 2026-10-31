@@ -1,0 +1,36 @@
+name: habit_force
+description: "Habit Force — habits that hold, alarms that ring"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # storage — 01-platform/storage. Plain SQLite: the native library comes from
+  # package:sqlite3's own build hook. No SQLCipher — see the storage HLD for
+  # why this app does not encrypt.
+  drift: ^2.34.0
+  sqlite3: ^3.5.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # ids — UUID v7 (D21)
+  uuid: ^4.5.1
+
+  # ui
+  intl: ^0.20.2
+  collection: ^1.19.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  drift_dev: ^2.34.0
+  build_runner: ^2.4.15
+
+flutter:
+  uses-material-design: true

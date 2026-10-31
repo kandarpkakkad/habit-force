@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blocker_label">Habit Force blocker</string>
+    <string name="blocker_description">Habit Force uses this to see which app has just opened, so it can send away the apps you blocked for a habit while that habit is running. It does not read what is on your screen, and nothing leaves your phone.</string>
+</resources>

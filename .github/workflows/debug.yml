@@ -1,0 +1,141 @@
+name: Debug build
+
+# Every push to main, and on demand. This is the build you install to try
+# something out. It cannot affect a release: it never touches the upload key.
+#
+# A push to main bumps the patch version first, so every debug APK carries a
+# version higher than the last one and the app agrees with its own file name.
+# A pull request builds without bumping.
+#
+# Documentation does not build an APK: a push that only touches docs or
+# markdown is skipped entirely — no build, no version bump. A push that touches
+# code and docs still builds; paths-ignore skips only when every changed file
+# matches.
+on:
+  push:
+    branches: [main]
+    paths-ignore: &not-code
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.vscode/**'
+      - '.idea/**'
+  pull_request:
+    branches: [main]
+    paths-ignore: *not-code
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Build at this exact version instead of bumping (e.g. 0.2.0)'
+        required: false
+
+concurrency:
+  group: debug-${{ github.ref }}
+  cancel-in-progress: true      # only the newest push is worth building
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    # A normal run is well under this. A hung Gradle or test would otherwise
+    # hold the runner for GitHub's six-hour default.
+    timeout-minutes: 30
+    permissions:
+      contents: write        # to push the version bump back to main
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The default checkout is a detached HEAD, which cannot be pushed
+          # from. The branch is needed to commit the bump.
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            V="${{ github.event.inputs.version }}"
+            echo "building at requested version $V"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            V="$(tool/bump_version.sh patch)"
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pubspec.yaml lib/platform/versioning/version.dart
+            # The skip-ci marker keeps this commit from triggering this same
+            # workflow again, which would bump again, for ever.
+            git commit -m "v$V [skip ci]"
+            # Another push may have landed meanwhile. The bump is a one-line
+            # change to two files and never conflicts with anything but
+            # another bump.
+            git pull --rebase --autostash
+            git push
+          else
+            V="$(grep -E '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/\+.*//')"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Move with docker-compose.test.yml's image, or the local suite tests a
+      # different toolchain from the one that builds the APK.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.10'
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # Without a pinned key the Android plugin mints a random one per build,
+      # and an APK signed by a different key cannot be installed over the one
+      # on the phone — only after an uninstall, which wipes every habit
+      # (there is no backup, D2). So the key is restored from a secret.
+      - name: Restore debug signing key
+        env:
+          DEBUG_KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$DEBUG_KEYSTORE_B64" ]; then
+            echo "::warning::ANDROID_DEBUG_KEYSTORE_BASE64 is not set. This APK is signed with a throwaway key: it will not install over a previous debug build without an uninstall, and an uninstall deletes every habit."
+            exit 0
+          fi
+          echo "$DEBUG_KEYSTORE_B64" | base64 --decode > android/debug.keystore
+
+      - name: Build
+        run: flutter build apk --debug --split-per-abi
+
+      # Pure native logic: boundaries, notification text, the block decision.
+      - name: Kotlin unit tests
+        working-directory: android
+        run: ./gradlew --no-daemon -q :app:testDebugUnitTest
+
+      - name: Shred the key
+        if: always()
+        run: rm -f android/debug.keystore
+
+      # arm64 for the phone, x86_64 for an emulator. Named for the version and
+      # nothing else: it is the one thing you can compare between two files
+      # in a downloads folder.
+      - name: Name them
+        env:
+          V: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk "dist/habit-force-debug-$V-arm64.apk"
+          cp build/app/outputs/flutter-apk/app-x86_64-debug.apk "dist/habit-force-debug-$V-x86_64.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: habit-force-debug-${{ steps.version.outputs.version }}
+          path: dist/*.apk
+          retention-days: 14
+          compression-level: 0    # an APK is already a zip

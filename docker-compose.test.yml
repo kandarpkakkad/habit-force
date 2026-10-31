@@ -1,0 +1,106 @@
+# Flutter in a throwaway container, so nothing but Docker is needed on the
+# host. Three services, each driven by a script in tool/:
+#
+#   test     flutter analyze + flutter test             tool/test_in_docker.sh
+#   codegen  drift's generated code, copied back        tool/codegen_in_docker.sh
+#   build    the debug APK + the Kotlin unit tests      tool/build_in_docker.sh
+#
+# The steps live inline rather than in scripts beside them: with core.autocrlf
+# on, a Windows checkout hands the container a script with CRLF endings, and
+# bash inside it dies on the first `\r`. YAML is read on the host, where line
+# endings do not matter.
+#
+# The source is copied in before anything runs. Running in the checkout would
+# write a .dart_tool full of Linux paths over the host's.
+name: habit-force-test
+
+x-flutter: &flutter
+  # The same Flutter as the pipeline (debug.yml, release.yml). Move all three
+  # together, or the container tests a different toolchain from the one that
+  # builds the APK.
+  image: instrumentisto/flutter:3.38.10
+  environment:
+    PUB_CACHE: /pub-cache
+    FLUTTER_SUPPRESS_ANALYTICS: "true"
+    GRADLE_USER_HOME: /gradle-home
+  working_dir: /app
+
+services:
+  test:
+    <<: *flutter
+    volumes:
+      - .:/src:ro
+      - pub-cache:/pub-cache
+    command:
+      - bash
+      - -euo
+      - pipefail
+      - -c
+      - |
+        tar -C /src \
+          --exclude=./.dart_tool --exclude=./build --exclude=./.git \
+          --exclude=./android/.gradle --exclude=./android/local.properties \
+          -cf - . | tar -C /app -xf -
+        flutter --disable-analytics > /dev/null
+        flutter pub get
+        flutter analyze
+        flutter test
+
+  codegen:
+    <<: *flutter
+    volumes:
+      # Read-write: the generated files are copied back, and only those.
+      - .:/src
+      - pub-cache:/pub-cache
+    command:
+      - bash
+      - -euo
+      - pipefail
+      - -c
+      - |
+        tar -C /src \
+          --exclude=./.dart_tool --exclude=./build --exclude=./.git \
+          --exclude=./android/.gradle --exclude=./android/local.properties \
+          -cf - . | tar -C /app -xf -
+        flutter --disable-analytics > /dev/null
+        flutter pub get
+        # --force-jit: without it the build script fails to compile against
+        # the build hooks package:sqlite3 ships.
+        dart run build_runner build --delete-conflicting-outputs --force-jit
+        cp pubspec.lock /src/pubspec.lock
+        find lib -name '*.g.dart' | while read -r f; do cp "$$f" "/src/$$f"; echo "copied back $$f"; done
+
+  build:
+    <<: *flutter
+    volumes:
+      # Read-write only so the APKs can be copied out to build/docker/.
+      - .:/src
+      - pub-cache:/pub-cache
+      - gradle-home:/gradle-home
+      # The Flutter Gradle plugin installs the NDK into the SDK on first build,
+      # about a gigabyte. Without a volume it would be fetched every run.
+      - android-ndk:/opt/android-sdk-linux/ndk
+    command:
+      - bash
+      - -euo
+      - pipefail
+      - -c
+      - |
+        tar -C /src \
+          --exclude=./.dart_tool --exclude=./build --exclude=./.git \
+          --exclude=./android/.gradle --exclude=./android/local.properties \
+          -cf - . | tar -C /app -xf -
+        flutter --disable-analytics > /dev/null
+        flutter pub get
+        flutter build apk --debug --split-per-abi
+        (cd android && ./gradlew --no-daemon -q :app:testDebugUnitTest)
+        echo "Kotlin unit tests passed"
+        mkdir -p /src/build/docker
+        cp build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk /src/build/docker/habit-force-debug-arm64.apk
+        cp build/app/outputs/flutter-apk/app-x86_64-debug.apk /src/build/docker/habit-force-debug-x86_64.apk
+        ls -la /src/build/docker
+
+volumes:
+  pub-cache:
+  gradle-home:
+  android-ndk:

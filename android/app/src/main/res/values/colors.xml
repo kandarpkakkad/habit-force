@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- docs/03-frontend/design-system.md §5 -->
+<resources>
+    <color name="native_background">#FF121418</color>
+    <color name="native_text">#FFF2F3F7</color>
+    <color name="native_text_secondary">#FFA9AEBB</color>
+    <color name="native_accent">#FF7FA2F0</color>
+    <color name="native_on_accent">#FF0D1B3D</color>
+    <color name="native_field">#FF1E2128</color>
+</resources>
