@@ -64,3 +64,7 @@ Installing and checking it on a phone: [`.claude/skills/run-habit-force/SKILL.md
 
 Everything in the PRD is written. The engines are unit tested. **Nothing native
 has been run on a phone yet** — see the table in [`docs/README.md`](docs/README.md).
+
+## Licence
+
+MIT — see [`LICENSE`](LICENSE).
