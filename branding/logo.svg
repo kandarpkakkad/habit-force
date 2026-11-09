@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Habit Force: an alarm clock whose hands form a check mark. Background is the app's
+       theme seed colour (lib/ui/theme/theme.dart, kSeed). Everything sits inside the
+       central circle, so a round crop loses nothing. -->
+  <rect width="512" height="512" fill="#2E5BBA"/>
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <!-- bells -->
+    <path d="M82,174.9 A192,192 0 0 1 174.9,82" stroke-width="26"/>
+    <path d="M337.1,82 A192,192 0 0 1 430,174.9" stroke-width="26"/>
+    <!-- face -->
+    <circle cx="256" cy="256" r="150" stroke-width="30"/>
+    <!-- hands as a check mark -->
+    <path d="M186,262 L236,312 L330,206" stroke-width="34"/>
+  </g>
+</svg>

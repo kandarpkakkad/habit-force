@@ -1,3 +1,5 @@
+<img src="branding/logo-512.png" alt="Habit Force logo: an alarm clock whose hands form a check mark" width="96">
+
 # Habit Force
 
 Habits that hold, alarms that ring. You write down your routine — *learning

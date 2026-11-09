@@ -1,12 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Status-bar icon: a ring with a tick. Monochrome, as the status bar
-     requires; the launcher icon would show as a grey square. -->
+<!-- Status-bar icon: the logo's alarm clock with a check mark (design system §6). Monochrome,
+     as the status bar requires; the launcher icon would show as a grey square. The logo's
+     paths in its 512-unit coordinates, scaled by 0.053 into 24 dp, with heavier strokes than
+     the logo so the shape survives the size. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM10,14.17l-2.59,-2.58L6,13l4,4 8,-8 -1.41,-1.42z" />
+    <group
+        android:pivotX="256"
+        android:pivotY="256"
+        android:scaleX="0.053"
+        android:scaleY="0.053"
+        android:translateX="-244"
+        android:translateY="-242.94">
+        <path
+            android:pathData="M82,174.9 A192,192 0 0 1 174.9,82"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeWidth="30" />
+        <path
+            android:pathData="M337.1,82 A192,192 0 0 1 430,174.9"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeWidth="30" />
+        <path
+            android:pathData="M106,256 A150,150 0 1 1 406,256 A150,150 0 1 1 106,256 Z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="34" />
+        <path
+            android:pathData="M186,262 L236,312 L330,206"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="40" />
+    </group>
 </vector>

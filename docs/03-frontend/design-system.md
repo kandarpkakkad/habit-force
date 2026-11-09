@@ -66,3 +66,20 @@ often seen at night and over a lock screen.
 
 Buttons are full width, 56 dp tall, 16 dp apart, 24 dp side margins. The primary action is
 the one that keeps the rule: *Go to the home screen*, *Dismiss*.
+
+## 6. App icon
+
+An alarm clock whose hands form a check mark — alarms answered and habits kept, in one shape.
+White on `kSeed`. The source is `branding/logo.svg` (512 × 512); `logo-512.png` and
+`logo-120.png` beside it are renders of it — the 120 px one is the logo on Google's sign-in
+branding.
+
+| Where | File | How |
+|---|---|---|
+| Launcher | `res/mipmap/ic_launcher.xml` | Adaptive icon: background `#2E5BBA`, foreground `drawable/ic_launcher_foreground.xml`, which is also the monochrome layer for themed icons. One vector, no PNG per density: `minSdk 36` always has adaptive icons |
+| Status bar | `drawable/ic_stat_habit.xml` | The same shape, monochrome, with heavier strokes so it survives 24 dp |
+| Splash | — | Android 12+ draws the launcher icon on the launch background itself |
+
+Both vectors carry the SVG's paths in its 512-unit coordinates under a single group
+transform, so they are copies of the logo, not redrawings. Change the shape in
+`branding/logo.svg`, then copy its paths across.
