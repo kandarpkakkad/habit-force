@@ -40,7 +40,7 @@ describe it.
 | notifications — boundary chain, batching, DND | built. **Never run on a phone** |
 | history — collect, streaks, day view | built, streaks unit tested |
 | setup checklist | built |
-| CI — debug APK per push, signed release | debug build passes on GitHub (2026-11-01: analyze, Dart and Kotlin unit tests, APK uploaded). Signed release **never run** — needs the signing secrets |
+| CI — debug APK per push, signed release | Both run on GitHub. Signing secrets set 2026-11-09: debug builds sign with one fixed debug key, so they install over each other. First release **v0.2.0** (2026-11-09): signed with the release key, SHA-1 `D4:1D:BE:…:F1:5F`, no `INTERNET` permission. **Never installed on a phone** |
 
 **Nothing native has been observed on a device yet.** It compiles and the APK builds; that is
 all that is known. The first install on a phone is the first real test of every row marked so.

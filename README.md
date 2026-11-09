@@ -62,6 +62,10 @@ tool/build_in_docker.sh     # debug APKs in build/docker/, plus the Kotlin unit 
 
 Installing and checking it on a phone: [`.claude/skills/run-habit-force/SKILL.md`](.claude/skills/run-habit-force/SKILL.md).
 
+**Or skip the build:** each [release](https://github.com/kandarpkakkad/habit-force/releases)
+carries a signed `habit-force-vX.Y.Z-arm64.apk` for Android 16 phones. Allow installs from
+your browser or file manager, open the APK, and later releases update it in place.
+
 ## Status
 
 Everything in the PRD is written. The engines are unit tested. **Nothing native
